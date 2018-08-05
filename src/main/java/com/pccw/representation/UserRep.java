@@ -20,6 +20,13 @@ public class UserRep {
 
     public UserRep() {}
 
+    public UserRep(String email, String name, String username, String password) {
+        this.email = email;
+        this.name = name;
+        this.username = username;
+        this.password = password;
+    }
+
     public UserRep(User user) {
         this.email = user.getEmail();
         this.name = user.getName();

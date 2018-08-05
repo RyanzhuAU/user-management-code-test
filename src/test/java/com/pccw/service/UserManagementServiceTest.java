@@ -1,13 +1,27 @@
 package com.pccw.service;
 
+import antlr.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pccw.Application;
 import com.pccw.H2JpaConfig;
+import com.pccw.domain.User;
 import com.pccw.repository.UserRepository;
+import com.pccw.representation.UserRep;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 
 /**
  * Created by ryan.zhu on 14/05/2018.
@@ -19,153 +33,109 @@ public class UserManagementServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private UserManagementService userManagementService;
+
+    private long testUserId;
 
     @Before
     public void setup() {
-//        userManagementService = new UserManagementServiceImpl(cashSupplyRepository, userRepository);
-//
-//        transactionLogDetailRepository.deleteAllInBatch();
-//        cashSupplyRepository.deleteAllInBatch();
-//        userRepository.deleteAllInBatch();
-//
-//        User cashType = new User("$100", 100);
-//        userRepository.save(cashType);
-//        CashSupply cashSupply = new CashSupply(cashType, 2);
-//        cashSupplyRepository.save(cashSupply);
-//
-//        cashType = new User("$50", 50);
-//        userRepository.save(cashType);
-//        cashSupply = new CashSupply(cashType, 3);
-//        cashSupplyRepository.save(cashSupply);
-//
-//        cashType = new User("$20", 20);
-//        userRepository.save(cashType);
-//        cashSupply = new CashSupply(cashType, 4);
-//        cashSupplyRepository.save(cashSupply);
-//
-//        cashType = new User("$10", 10);
-//        userRepository.save(cashType);
-//        cashSupply = new CashSupply(cashType, 5);
-//        cashSupplyRepository.save(cashSupply);
+        userManagementService = new UserManagementServiceImpl(userRepository);
+
+        userRepository.deleteAll();
+
+        User user = new User("1@1.com", "test001", "test001", "1111");
+        userRepository.save(user);
+
+
+        user = new User("2@2.com", "test002", "test002", "2222");
+        user = userRepository.save(user);
+        testUserId = user.getUserId();
+
+//        List<User> userList = this.userManagementService.getUsers();
+//        assertThat(userList.size(), is(2));
+
     }
 
-//    @Test
-//    public void dispenseCashTest() throws Exception {
-//        // test the scenario - can withdraw with one note/coin
-//        Map<User, WithdrawCashSupplyRep> result = userManagementService.dispenseCash(200);
-//
-//        result.forEach((cashType, cashSupply) -> {
-//            assertThat(cashSupply.getCashValue(), is(cashType.getCashValue()));
-//
-//            if (StringUtils.equals(cashType.getCashDesc(), "100")) {
-//                assertThat(cashSupply.getCashQuantity(), is(1));
-//
-//                CashSupply newCashSupply = cashSupplyRepository.findByCashTypeEquals(cashType);
-//                assertThat(newCashSupply.getCashQuantity(), is(1));
-//            } else if (StringUtils.equals(cashType.getCashDesc(), "50")) {
-//                assertThat(cashSupply.getCashQuantity(), is(2));
-//
-//                CashSupply newCashSupply = cashSupplyRepository.findByCashTypeEquals(cashType);
-//                assertThat(newCashSupply.getCashQuantity(), is(1));
-//            }
-//        });
-//
-//        // test the scenario - need to withdraw with different note/coin
-//        result = userManagementService.dispenseCash(90);
-//
-//        result.forEach((cashType, cashSupply) -> {
-//            assertThat(cashSupply.getCashValue(), is(cashType.getCashValue()));
-//
-//            if (StringUtils.equals(cashType.getCashDesc(), "20")) {
-//                assertThat(cashSupply.getCashQuantity(), is(3));
-//
-//                CashSupply newCashSupply = cashSupplyRepository.findByCashTypeEquals(cashType);
-//                assertThat(newCashSupply.getCashQuantity(), is(1));
-//            } else if (StringUtils.equals(cashType.getCashDesc(), "10")) {
-//                assertThat(cashSupply.getCashQuantity(), is(3));
-//
-//                CashSupply newCashSupply = cashSupplyRepository.findByCashTypeEquals(cashType);
-//                assertThat(newCashSupply.getCashQuantity(), is(2));
-//            }
-//        });
-//
-//        // test the scenario - the cash stock cannot meet the required cash amount
-//        try {
-//            userManagementService.dispenseCash(200);
-//        } catch (CashSupplyException e) {
-//            int amountRequired = e.getAmountRequired();
-//            int amountSupplied = e.getAmountSupplied();
-//
-//            assertThat(amountRequired, is(200));
-//            assertThat(amountSupplied, is(190));
-//            assertThat(e.getMessage(), is("Sorry, this ATM cannot supply the amount required $" + amountRequired + " with current stock. " +
-//                    "The closest amount that can be supplied is $" + amountSupplied + ". Please try again later."));
-//        }
-//
-//        // test the scenario - cannot withdraw with existing cash supply
-//        try {
-//            userManagementService.dispenseCash(25);
-//        } catch (CashSupplyException e) {
-//            int amountRequired = e.getAmountRequired();
-//            int amountSupplied = e.getAmountSupplied();
-//
-//            assertThat(amountRequired, is(25));
-//            assertThat(amountSupplied, is(20));
-//            assertThat(e.getMessage(), is("Sorry, this ATM cannot supply the amount required $" + amountRequired + " with current stock. " +
-//                    "The closest amount that can be supplied is $" + amountSupplied + ". Please try again later."));
-//        }
-//
-//        // test the scenario - over the withdraw daily limitation
-//        int limitation = userManagementService.getAccountCashWithdrawLimitation();
-//        try {
-//            userManagementService.dispenseCash(limitation + 1);
-//        } catch (CashSupplyException e) {
-//            int amountRequired = e.getAmountRequired();
-//            int amountSupplied = e.getAmountSupplied();
-//
-//            assertThat(amountRequired, is(limitation + 1));
-//            assertThat(amountSupplied, is(limitation));
-//            assertThat(e.getMessage(), is("Sorry, the amount $" + amountRequired + " is over your withdraw limitation. The amount you can withdraw is $" + amountSupplied + " today."));
-//        }
-//    }
-//
-//    @Test
-//    public void getCurrentCashSuppliesTest() {
-//        List<CashSupply> currentCashSupplyList = userManagementService.getCurrentCashSupplies();
-//
-//        List<CashSupply> cashSupplyListFromDb = cashSupplyRepository.findAll();
-//        Map<Integer, Integer> cashSupplyMap = new HashMap<>();
-//        cashSupplyListFromDb.forEach(cashSupply -> {
-//            cashSupplyMap.put(cashSupply.getCashType().getCashValue(), cashSupply.getCashQuantity());
-//        });
-//
-//        currentCashSupplyList.forEach(cashSupply -> {
-//            assertThat(cashSupply.getCashQuantity(), is(cashSupplyMap.get(cashSupply.getCashType().getCashValue())));
-//        });
-//    }
-//
-//    @Test
-//    public void initializationTest() {
-//        userManagementService.initializeCashMachine();
-//
-//        List<CashSupply> currentCashSupplyList = userManagementService.getCurrentCashSupplies();
-//        currentCashSupplyList.forEach(cashSupply -> {
-//            if (cashSupply.getCashType().getCashValue() == 100) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(10));
-//            } else if (cashSupply.getCashType().getCashValue() == 50) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(20));
-//            } else if (cashSupply.getCashType().getCashValue() == 20) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(30));
-//            } else if (cashSupply.getCashType().getCashValue() == 10) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(40));
-//            } else if (cashSupply.getCashType().getCashValue() == 5) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(50));
-//            } else if (cashSupply.getCashType().getCashValue() == 10) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(60));
-//            } else if (cashSupply.getCashType().getCashValue() == 10) {
-//                MatcherAssert.assertThat(cashSupply.getCashQuantity(), is(70));
-//            }
-//        });
-//    }
+    @Test
+    public void getUsersTest() {
+        List<User> userList = this.userManagementService.getUsers();
+
+        assertThat(userList.size(), is(2));
+
+        userList.stream().forEach(user -> {
+            if (user.getUsername().equals("test001")) {
+                assertThat(user.getEmail(), is("1@1.com"));
+                assertThat(user.getName(), is("test001"));
+                assertThat(user.getPassword(), is("1111"));
+            } else {
+                assertThat(user.getEmail(), is("2@2.com"));
+                assertThat(user.getName(), is("test002"));
+                assertThat(user.getUsername(), is("test002"));
+                assertThat(user.getPassword(), is("2222"));
+            }
+        });
+    }
+
+    @Test
+    public void addUserTest() {
+        try {
+            UserRep newUser = new UserRep("3@3.com", "test003", "test003", "3333");
+            String json = objectMapper.writeValueAsString(newUser);
+            User user = this.userManagementService.addUser(json);
+
+            assertThat((int)user.getUserId(), is((int)testUserId + 1));
+            assertThat(user.getEmail(), is("3@3.com"));
+            assertThat(user.getName(), is("test003"));
+            assertThat(user.getUsername(), is("test003"));
+            assertThat(user.getPassword(), is("3333"));
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void getUserTest() {
+        User user = this.userManagementService.getUser(testUserId);
+        assertThat(user.getEmail(), is("2@2.com"));
+        assertThat(user.getName(), is("test002"));
+        assertThat(user.getUsername(), is("test002"));
+        assertThat(user.getPassword(), is("2222"));
+    }
+
+    @Test
+    public void deleteUserTest() {
+        User user = this.userManagementService.getUser(testUserId);
+        assertThat(user, notNullValue());
+
+        this.userManagementService.deleteUser(testUserId);
+
+        user = this.userManagementService.getUser(testUserId);
+        assertThat(user, equalTo(null));
+    }
+
+    @Test
+    public void updateUserTest() {
+        try {
+            UserRep updatedUser = new UserRep("3@3.com", "test003", "test003", "3333");
+            String json = objectMapper.writeValueAsString(updatedUser);
+            User user = this.userManagementService.updateUser(testUserId, json);
+
+            assertThat(user.getUserId(), is(testUserId));
+            assertThat(user.getEmail(), is("3@3.com"));
+            assertThat(user.getName(), is("test003"));
+            assertThat(user.getUsername(), is("test003"));
+            assertThat(user.getPassword(), is("3333"));
+
+        } catch (Exception e) {
+            fail();
+        }
+
+    }
+
 }

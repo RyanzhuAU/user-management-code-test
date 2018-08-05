@@ -45,7 +45,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     public User getUser(long userId) {
-        User user = this.userRepository.findById(userId);
+        User user = this.userRepository.findByUserId(userId);
 
         return user;
     }
@@ -58,6 +58,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         UserRep userRep = this.mapper.readValue(json, UserRep.class);
 
         User user = new User(userRep);
+        user.setUserId(userId);
+
         user = this.userRepository.save(user);
 
         return user;

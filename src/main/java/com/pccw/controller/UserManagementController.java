@@ -108,7 +108,7 @@ public class UserManagementController {
      * @param userId
      * @return JSON - user and status 200, or status 400
      */
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity deleteUser(@PathVariable("id") String userId) {
         try {
             this.userManagementService.deleteUser(Long.valueOf(userId));
